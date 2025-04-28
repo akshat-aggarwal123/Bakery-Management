@@ -1,0 +1,88 @@
+services:
+  db:
+    image: postgres:13
+    container_name: bakery-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: "akshat01@postgres"
+      POSTGRES_DB: bakery_db
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    networks:
+      - bakery-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h localhost -U postgres -d bakery_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+ 
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: bakery-rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: akshat
+      RABBITMQ_DEFAULT_PASS: "akshat01@rabbitmq"
+    networks:
+      - bakery-network
+    healthcheck:
+      test: ["CMD", "rabbitmqctl", "status"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+ 
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: bakery-backend
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./backend/.env
+    environment:
+      DATABASE_URL: "postgres://postgres:akshat01%40postgres@db:5432/bakery_db"
+      JWT_SECRET: "yJGMJkZeb0wDSuVLziqr6FZWg254trgqTV8tQEWg8CU="
+      RABBITMQ_URL: "amqp://akshat:akshat01%40rabbitmq@rabbitmq:5672/"
+      PORT: 3000
+      ALLOW_ADMIN_CREATION: "true"
+      NODE_ENV: "development"
+    depends_on:
+      db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - bakery-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    restart: unless-stopped
+ 
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: bakery-frontend
+    ports:
+      - "3001:3000"
+    environment:
+      REACT_APP_API_URL: "http://localhost:3000/api"
+      REACT_APP_WS_URL: "ws://localhost:3000/ws"
+    depends_on:
+      - backend
+    networks:
+      - bakery-network
+    restart: unless-stopped
+ 
+networks:
+  bakery-network:
+    driver: bridge
+ 
+volumes:
+  db-data:

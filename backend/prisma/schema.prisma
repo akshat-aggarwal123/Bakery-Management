@@ -1,0 +1,67 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int       @id @default(autoincrement())
+  email     String    @unique
+  password  String
+  isAdmin   Boolean   @default(false)
+  products  Product[]
+  orders    Order[]
+  cart      Cart?     // Removed relation attributes here
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Product {
+  id          Int       @id @default(autoincrement())
+  name        String    @unique
+  price       Decimal
+  quantity    Int
+  creatorId   Int
+  creator     User      @relation(fields: [creatorId], references: [id])
+  orders      Order[]
+  cartItems   CartItem[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Order {
+  id          Int       @id @default(autoincrement())
+  userId      Int
+  productId   Int
+  quantity    Int
+  status      String    @default("pending")
+  user        User      @relation(fields: [userId], references: [id])
+  product     Product   @relation(fields: [productId], references: [id])
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Cart {
+  id        Int       @id @default(autoincrement())
+  userId    Int       @unique
+  user      User      @relation(fields: [userId], references: [id]) // Keep relation here
+  items     CartItem[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model CartItem {
+  id        Int       @id @default(autoincrement())
+  cartId    Int
+  cart      Cart      @relation(fields: [cartId], references: [id])
+  productId Int
+  product   Product   @relation(fields: [productId], references: [id])
+  quantity  Int
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@unique([cartId, productId])
+}
