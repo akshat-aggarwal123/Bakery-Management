@@ -23,30 +23,6 @@ A full-stack bakery management system with Node.js backend and React frontend, f
 
 ---
 
-## 🏗️ System Architecture
-
-```mermaid
-flowchart TD
-    User((User)) -->|Access| Frontend[React Frontend]
-    Frontend -->|API Requests| Backend[Node.js Backend]
-    
-    Backend -->|Authentication| JWT[JWT Auth]
-    Backend -->|Database Operations| DB[(PostgreSQL)]
-    Backend -->|Queue Orders| RMQ[RabbitMQ]
-    
-    RMQ -->|Process| Consumer[Order Processor]
-    Consumer -->|Update| DB
-    
-    subgraph "Core Workflows"
-        Frontend -->|1. Auth| Backend
-        Frontend -->|2. Browse Products| Backend
-        Frontend -->|3. Cart Management| Backend
-        Frontend -->|4. Place Order| Backend
-    end
-
-
----
-
 ## ⚙ Tech Stack
 
 *Backend*
