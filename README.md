@@ -23,7 +23,7 @@ A full-stack bakery management system with Node.js backend and React frontend, f
 
 ---
 
-## System Architecture
+## 🏗️ System Architecture
 
 ```mermaid
 flowchart TD
@@ -44,6 +44,8 @@ flowchart TD
         Frontend -->|4. Place Order| Backend
     end
 
+
+---
 
 ## ⚙ Tech Stack
 
